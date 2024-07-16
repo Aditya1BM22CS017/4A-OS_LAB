@@ -1,0 +1,120 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define MAX_PROCESSES 5
+#define MAX_RESOURCES 3
+
+void printMatrices(int processes, int resources, int alloc[MAX_PROCESSES][MAX_RESOURCES], int max[MAX_PROCESSES][MAX_RESOURCES], int need[MAX_PROCESSES][MAX_RESOURCES], int avail[MAX_RESOURCES]) {
+    printf("Allocation Matrix:\n");
+    for (int i = 0; i < processes; i++) {
+        for (int j = 0; j < resources; j++) {
+            printf("%d ", alloc[i][j]);
+        }
+        printf("\n");
+    }
+
+    printf("\nMax Matrix:\n");
+    for (int i = 0; i < processes; i++) {
+        for (int j = 0; j < resources; j++) {
+            printf("%d ", max[i][j]);
+        }
+        printf("\n");
+    }
+
+    printf("\nNeed Matrix:\n");
+    for (int i = 0; i < processes; i++) {
+        for (int j = 0; j < resources; j++) {
+            printf("%d ", need[i][j]);
+        }
+        printf("\n");
+    }
+
+    printf("\nAvailable Resources:\n");
+    for (int i = 0; i < resources; i++) {
+        printf("%d ", avail[i]);
+    }
+    printf("\n");
+}
+
+void deadlockDetection(int processes, int resources, int alloc[MAX_PROCESSES][MAX_RESOURCES], int max[MAX_PROCESSES][MAX_RESOURCES], int avail[MAX_RESOURCES]) {
+    int need[MAX_PROCESSES][MAX_RESOURCES];
+    int work[MAX_RESOURCES];
+    bool finish[MAX_PROCESSES];
+
+    for (int i = 0; i < processes; i++) {
+        for (int j = 0; j < resources; j++) {
+            need[i][j] = max[i][j] - alloc[i][j];
+        }
+    }
+
+    printMatrices(processes, resources, alloc, max, need, avail);
+    for (int i = 0; i < resources; i++) {
+        work[i] = avail[i];
+    }
+    for (int i = 0; i < processes; i++) {
+        finish[i] = false;
+    }
+    bool found;
+    do {
+        found = false;
+        for (int i = 0; i < processes; i++) {
+            if (!finish[i]) {
+                bool flag = true;
+                for (int j = 0; j < resources; j++) {
+                    if (need[i][j] > work[j]) {
+                        flag = false;
+                        break;
+                    }
+                }
+
+                if (flag) {
+                    printf("\nProcess %d can be satisfied and is now finishing.\n", i);
+                    for (int k = 0; k < resources; k++) {
+                        work[k] += alloc[i][k];
+                    }
+                    finish[i] = true;
+                    found = true;
+
+                    printf("New Available Resources:\n");
+                    for (int k = 0; k < resources; k++) {
+                        printf("%d ", work[k]);
+                    }
+                    printf("\n");
+                }
+            }
+        }
+    } while (found);
+    bool deadlock = false;
+    printf("\nDeadlock Check:\n");
+    for (int i = 0; i < processes; i++) {
+        if (!finish[i]) {
+            deadlock = true;
+            printf("Process %d is in a deadlock.\n", i);
+        }
+    }
+    if (!deadlock) {
+        printf("No deadlock detected.\n");
+    }
+}
+int main() {
+    int processes = 5;
+    int resources = 3;
+
+    int alloc[MAX_PROCESSES][MAX_RESOURCES] = {
+        { 0, 1, 0 }, 
+        { 2, 0, 0 }, 
+        { 3, 0, 2 }, 
+        { 2, 1, 1 }, 
+        { 0, 0, 2 }  
+    };
+    int max[MAX_PROCESSES][MAX_RESOURCES] = {
+        { 7, 5, 3 }, 
+        { 3, 2, 2 }, 
+        { 9, 0, 2 }, 
+        { 2, 2, 2 }, 
+        { 4, 3, 3 }  
+    };
+    int avail[MAX_RESOURCES] = { 3, 3, 2 }; // Available resources
+    deadlockDetection(processes, resources, alloc, max, avail);
+    return 0; 
+}
