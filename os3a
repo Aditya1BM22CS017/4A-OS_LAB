@@ -1,0 +1,64 @@
+#include <stdio.h>
+
+void findWaitingTime(int processes[], int n, int bt[], int wt[], int period[]) {
+    wt[0] = 0;
+    for (int i = 1; i < n; i++) {
+        wt[i] = bt[i - 1] + wt[i - 1];
+    }
+}
+void findTurnAroundTime(int processes[], int n, int bt[], int wt[], int tat[]) {
+    for (int i = 0; i < n; i++) {
+        tat[i] = bt[i] + wt[i];
+    }
+}
+void findAvgTime(int processes[], int n, int bt[], int period[]) {
+    int wt[n], tat[n];
+    findWaitingTime(processes, n, bt, wt, period);
+    findTurnAroundTime(processes, n, bt, wt, tat);
+
+    printf("Processes   Burst time   Waiting time   Turnaround time   Period\n");
+    for (int i = 0; i < n; i++) {
+        printf(" %d ", (i + 1));
+        printf("           %d ", bt[i]);
+        printf("           %d ", wt[i]);
+        printf("           %d ", tat[i]);
+        printf("                  %d\n", period[i]);
+    }
+    int total_wt = 0, total_tat = 0;
+    for (int i = 0; i < n; i++) {
+        total_wt += wt[i];
+        total_tat += tat[i];
+    }
+    printf("Average waiting time = %.2f\n", (float)total_wt / (float)n);
+    printf("Average turnaround time = %.2f\n", (float)total_tat / (float)n);
+}
+void rateMonotonicScheduling(int processes[], int n, int bt[], int period[]) {
+    // Sort by period
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (period[j] > period[j + 1]) {
+                int temp = period[j];
+                period[j] = period[j + 1];
+                period[j + 1] = temp;
+                temp = bt[j];
+                bt[j] = bt[j + 1];
+                bt[j + 1] = temp;
+                temp = processes[j];
+                processes[j] = processes[j + 1];
+                processes[j + 1] = temp;
+            }
+        }
+    }
+
+  findAvgTime(processes, n, bt, period);
+}
+
+int main() {
+    int processes[] = {1, 2, 3};
+    int n = sizeof(processes) / sizeof(processes[0]);
+    int burst_time[] = {3, 1, 2};
+    int period[] = {7, 4, 5};
+
+    rateMonotonicScheduling(processes, n, burst_time, period);
+    return 0;
+}
